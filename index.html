@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CinemaTheatre</title>
+<meta name="description" content="Мой каталог фильмов и сериалов: что посмотреть сегодня">
+<meta name="theme-color" content="#1C1419" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F6F1F3" media="(prefers-color-scheme: light)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #1C1419;          /* ложа */
+  --bg-2: #261B22;
+  --bg-3: #33242D;
+  --text: #EEE6EA;
+  --muted: #A3949D;
+  --velvet: #7A1E2C;      /* занавес */
+  --velvet-hi: #9B2A3B;
+  --brass: #C9A55C;       /* оценки */
+  --line: #3D2C36;
+  --ok: #6FA587;
+  --err: #E07A7A;
+  --radius-poster: 6px;
+  --radius-ui: 10px;
+  --gutter: 16px;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #F6F1F3; --bg-2: #EDE4E8; --bg-3: #E2D6DC; --text: #2A1A22; --muted: #6E5A65;
+    --velvet: #8C2433; --velvet-hi: #A32E40; --brass: #93702A; --line: #D9CCD2; --ok: #2F7350; --err: #B23A3A;
+    color-scheme: light;
+  }
+}
+:root[data-theme="dark"] { color-scheme: dark; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 400 15px/1.45 "Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+a { color: inherit; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 var(--gutter); }
+
+/* шапка */
+header.top {
+  position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+}
+.top .row { display: flex; align-items: center; gap: 10px; height: 56px; }
+.brand { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; }
+.brand b { color: var(--velvet-hi); font-weight: 700; }
+.search { flex: 1; min-width: 0; }
+.search input {
+  width: 100%; height: 38px; border-radius: var(--radius-ui); border: 1px solid var(--line);
+  background: var(--bg-2); padding: 0 12px;
+}
+.icon-btn {
+  flex: none; width: 38px; height: 38px; border-radius: var(--radius-ui); border: 1px solid var(--line);
+  background: var(--bg-2); display: grid; place-items: center; font-size: 20px; line-height: 1;
+}
+.icon-btn.primary { background: var(--velvet); border-color: var(--velvet); color: #fff; }
+.shelves { display: flex; gap: 6px; overflow-x: auto; padding: 0 0 10px; scrollbar-width: none; }
+.shelves::-webkit-scrollbar { display: none; }
+.shelf-btn {
+  flex: none; border: 1px solid var(--line); background: transparent; border-radius: 999px;
+  padding: 6px 12px; color: var(--muted); white-space: nowrap;
+}
+.shelf-btn[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 600; }
+.shelf-btn .n { opacity: .7; margin-left: 4px; font-variant-numeric: tabular-nums; }
+
+.banner { margin: 12px 0 0; padding: 10px 12px; border-radius: var(--radius-ui); background: var(--bg-2); color: var(--muted); font-size: 14px; }
+.banner button { background: none; border: 0; color: var(--text); text-decoration: underline; padding: 0; }
+
+/* «Что посмотреть» */
+.picker { padding: 22px 0 6px; }
+.ask { font-size: clamp(22px, 4.6vw, 34px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 14px; }
+.time-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.time-btn {
+  border: 1px solid var(--line); background: var(--bg-2); border-radius: var(--radius-ui);
+  padding: 10px 14px; min-width: 76px; text-align: left; line-height: 1.15;
+}
+.time-btn strong { display: block; font-size: 18px; font-weight: 700; }
+.time-btn span { font-size: 12px; color: var(--muted); }
+.time-btn[aria-pressed="true"] { background: var(--velvet); border-color: var(--velvet); color: #fff; }
+.time-btn[aria-pressed="true"] span { color: #f3d9de; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius-ui); overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 7px 12px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--bg-3); color: var(--text); font-weight: 600; }
+.filters select { height: 36px; border-radius: var(--radius-ui); border: 1px solid var(--line); background: var(--bg-2); padding: 0 10px; max-width: 100%; }
+
+.hero {
+  display: grid; grid-template-columns: minmax(120px, 220px) 1fr; gap: 18px;
+  margin: 20px 0 8px; align-items: start;
+}
+.hero .poster { aspect-ratio: 2 / 3; }
+.hero h2 { margin: 2px 0 4px; font-size: clamp(22px, 4vw, 32px); line-height: 1.1; letter-spacing: -0.015em; }
+.hero .orig { color: var(--muted); margin: 0 0 10px; }
+.facts { display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+.facts .rating { color: var(--brass); font-weight: 600; }
+.hero .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+@media (max-width: 600px) {
+  .hero { grid-template-columns: 118px 1fr; gap: 14px; margin-top: 16px; }
+  .hero h2 { font-size: 21px; }
+  .hero .actions { margin-top: 10px; }
+  .hero .actions .btn { padding: 7px 11px; font-size: 14px; }
+  .time-btn { min-width: 0; padding: 8px 11px; }
+  .time-btn strong { font-size: 16px; }
+}
+.btn {
+  border: 1px solid var(--line); background: var(--bg-2); border-radius: var(--radius-ui);
+  padding: 9px 14px; font-weight: 500;
+}
+.btn.primary { background: var(--velvet); border-color: var(--velvet); color: #fff; }
+.btn:disabled { opacity: .5; cursor: default; }
+.empty { padding: 28px 0; color: var(--muted); }
+.empty strong { display: block; color: var(--text); font-size: 18px; margin-bottom: 4px; }
+
+/* сетка постеров */
+.grid-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 24px 0 10px; }
+.grid-head h3 { margin: 0; font-size: 17px; }
+.grid-head .sort { color: var(--muted); font-size: 13px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 16px 12px; align-items: start; }
+@media (max-width: 420px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 8px; } }
+/* плитка — кнопка: без display:block кнопка центрирует содержимое по вертикали и постеры съезжают (24.10) */
+.tile { border: 0; background: none; padding: 0; text-align: left; min-width: 0; display: block; width: 100%; align-self: start; }
+.poster {
+  width: 100%; aspect-ratio: 2 / 3; border-radius: var(--radius-poster); background: var(--bg-3);
+  overflow: hidden; position: relative; display: block;
+}
+.poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.poster .ph {
+  position: absolute; inset: 0; display: flex; align-items: flex-end; padding: 8px;
+  background: linear-gradient(160deg, var(--velvet), #3a0f18); color: #f6e9ec; font-weight: 600; font-size: 13px; line-height: 1.2;
+}
+.poster .mark {
+  position: absolute; left: 6px; top: 6px; background: rgba(20, 12, 16, .82); color: var(--brass);
+  border-radius: 6px; padding: 1px 6px; font-size: 12px; font-weight: 700;
+}
+.tile .t { margin-top: 6px; font-size: 13px; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.tile .m { font-size: 12px; color: var(--muted); }
+.more { display: block; margin: 20px auto 40px; }
+
+/* окна */
+dialog {
+  border: 0; padding: 0; background: var(--bg); color: var(--text); border-radius: 14px;
+  width: min(680px, calc(100vw - 24px)); max-height: calc(100dvh - 24px);
+}
+dialog::backdrop { background: rgba(10, 5, 8, .65); }
+@media (max-width: 600px) {
+  dialog { width: 100vw; max-width: 100vw; margin: auto 0 0; border-radius: 14px 14px 0 0; max-height: 92dvh; }
+}
+.dlg { padding: 18px var(--gutter) 22px; overflow-y: auto; max-height: inherit; }
+.dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.dlg-head h2 { margin: 0; font-size: 19px; }
+.card-top { display: grid; grid-template-columns: 112px 1fr; gap: 14px; }
+.card-top h2 { margin: 0 0 4px; font-size: 21px; line-height: 1.15; }
+.field { margin-top: 16px; }
+.field > .lbl { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.stars { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; }
+.stars button {
+  border: 1px solid var(--line); background: var(--bg-2); border-radius: 8px; padding: 8px 0;
+  font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.stars button[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: #1C1419; }
+.note { width: 100%; min-height: 70px; border-radius: var(--radius-ui); border: 1px solid var(--line); background: var(--bg-2); padding: 10px; resize: vertical; }
+.links { display: flex; flex-wrap: wrap; gap: 8px; }
+.links a { border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; text-decoration: none; font-size: 14px; }
+.hint { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+.msg { font-size: 14px; margin-top: 10px; min-height: 1em; }
+.msg.err { color: var(--err); }
+.msg.ok { color: var(--ok); }
+.seasons { display: flex; flex-wrap: wrap; gap: 6px; }
+.seasons span { background: var(--bg-2); border-radius: 6px; padding: 2px 8px; font-size: 13px; }
+.seasons b { color: var(--brass); }
+.input-row { display: flex; gap: 8px; }
+.input-row input, .settings input {
+  flex: 1; min-width: 0; height: 42px; border-radius: var(--radius-ui); border: 1px solid var(--line); background: var(--bg-2); padding: 0 12px;
+}
+.cands { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 12px; }
+.cand { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: start; }
+.cand .poster { border-radius: 4px; }
+.cand h4 { margin: 0; font-size: 15px; }
+.cand .m { font-size: 13px; color: var(--muted); }
+.cand .act { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.cand .act .btn { padding: 6px 10px; font-size: 14px; }
+.settings label { display: block; margin-top: 14px; font-size: 13px; color: var(--muted); }
+.settings input { width: 100%; margin-top: 6px; display: block; }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+  background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-weight: 500;
+  max-width: calc(100vw - 32px); z-index: 50; opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.toast.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="row">
+      <div class="brand">Cinema<b>Theatre</b></div>
+      <div class="search"><label class="sr" for="q">Поиск по каталогу</label><input id="q" type="search" placeholder="Найти в каталоге" autocomplete="off"></div>
+      <button class="icon-btn primary" id="addBtn" title="Добавить фильм" aria-label="Добавить фильм">+</button>
+      <button class="icon-btn" id="setBtn" title="Настройки" aria-label="Настройки">⚙</button>
+    </div>
+    <nav class="shelves" id="shelves" aria-label="Полки"></nav>
+  </div>
+</header>
+
+<main class="wrap" id="main">
+  <div id="banner"></div>
+  <section id="pickerSec" class="picker" hidden>
+    <h1 class="ask">Сколько у тебя времени?</h1>
+    <div class="time-row" id="timeRow"></div>
+    <div class="filters">
+      <div class="seg" id="typeSeg" role="group" aria-label="Тип"></div>
+      <label class="sr" for="genreSel">Жанр</label>
+      <select id="genreSel"></select>
+    </div>
+    <div id="hero"></div>
+  </section>
+  <div class="grid-head"><h3 id="gridTitle"></h3><span class="sort" id="gridSort"></span></div>
+  <div class="grid" id="grid"></div>
+  <button class="btn more" id="moreBtn" hidden>Показать ещё</button>
+</main>
+
+<dialog id="cardDlg" aria-labelledby="cardTitle"><div class="dlg" id="cardBody"></div></dialog>
+<dialog id="addDlg" aria-labelledby="addTitle">
+  <div class="dlg">
+    <div class="dlg-head"><h2 id="addTitle">Добавить</h2><button class="icon-btn" data-close aria-label="Закрыть">×</button></div>
+    <form class="input-row" id="addForm">
+      <label class="sr" for="addInput">Ссылка или название</label>
+      <input id="addInput" placeholder="Ссылка Кинопоиска, IMDb или название" autocomplete="off">
+      <button class="btn primary" type="submit">Найти</button>
+    </form>
+    <p class="hint">Можно вставить текст «Поделиться» из приложения Кинопоиска целиком.</p>
+    <div class="msg" id="addMsg" role="status"></div>
+    <ul class="cands" id="cands"></ul>
+  </div>
+</dialog>
+<dialog id="setDlg" aria-labelledby="setTitle">
+  <div class="dlg settings">
+    <div class="dlg-head"><h2 id="setTitle">Настройки</h2><button class="icon-btn" data-close aria-label="Закрыть">×</button></div>
+    <label>Адрес веб-приложения Apps Script<input id="setUrl" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"></label>
+    <label>Токен приложения<input id="setToken" type="password" autocomplete="off"></label>
+    <p class="hint">Токен создаётся в таблице: меню CinemaTheatre → «Создать токен приложения». Хранится только на этом устройстве.</p>
+    <div class="filters">
+      <button class="btn primary" id="setSave">Сохранить и проверить</button>
+      <button class="btn" id="setSync">Обновить каталог</button>
+    </div>
+    <div class="msg" id="setMsg" role="status"></div>
+    <p class="hint" id="setInfo"></p>
+  </div>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* ---------- хранение на устройстве ---------- */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('ct.' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('ct.' + k, JSON.stringify(v)); } catch (e) {} },
+};
+
+/* ---------- связь с таблицей ---------- */
+const params = new URLSearchParams(location.search);
+const DEMO_URL = params.get('demo');                  // локальный предпросмотр: ?demo=путь_к_catalog.json
+const settings = Object.assign({ url: '', token: '' }, store.get('settings', {}));
+
+async function api(action, body = {}) {
+  if (DEMO_URL) return demoApi(action, body);
+  if (!settings.url || !settings.token) throw new Error('Укажи адрес и токен в настройках');
+  let res;
+  try {
+    res = await fetch(settings.url, { method: 'POST', body: JSON.stringify(Object.assign({ token: settings.token, action }, body)) });
+  } catch (e) { throw new Error('Нет связи с таблицей. Проверь интернет'); }
+  let data;
+  try { data = await res.json(); } catch (e) { throw new Error('Таблица ответила не JSON — проверь адрес веб-приложения'); }
+  if (!data.ok) throw new Error(data.error || 'Ошибка таблицы');
+  return data;
+}
+
+/* демо: каталог из файла, правки только в памяти, поиск — по самому каталогу */
+let demoRows = null;
+async function demoApi(action, body) {
+  if (!demoRows) demoRows = await fetch(DEMO_URL).then(r => r.json());
+  await new Promise(r => setTimeout(r, 150));
+  if (action === 'list') return { ok: true, rows: demoRows };
+  if (action === 'ping') return { ok: true, used: 0, left: 190 };
+  if (action === 'update' || action === 'add') {
+    const row = demoRows.find(r => r.key === body.key || (body.kp_id && r.kp_id === String(body.kp_id)));
+    if (!row) throw new Error('В демо можно менять только то, что уже есть в каталоге');
+    const f = body.fields || { status: body.status, my_rating_app: body.my_rating_app };
+    if ('my_rating_app' in f && f.my_rating_app !== undefined) row.my_rating_app = String(f.my_rating_app || '');
+    if ('notes' in f) row.notes = f.notes;
+    if ('rewatch_manual' in f) row.rewatch_manual = f.rewatch_manual;
+    if (f.status) row.status_manual = f.status === 'watching' ? 'watching' : '';
+    if (f.status === 'watched' && !(row.my_rating_app || row.my_rating_imdb || row.my_rating_kp)) throw new Error('Чтобы отметить «Посмотрел», поставь оценку');
+    row.my_rating = row.my_rating_app || row.my_rating_imdb || row.my_rating_kp || '';
+    row.status = row.status_manual === 'watching' ? 'watching' : row.my_rating ? 'watched' : row.episodes_rated ? 'watching' : 'want';
+    return { ok: true, row, created: false };
+  }
+  if (action === 'search') {
+    const q = String(body.input || '').toLowerCase().trim();
+    const hits = demoRows.filter(r => r.kp_id && [r.title, r.title_ru, r.orig_title].some(t => (t || '').toLowerCase().includes(q))).slice(0, 6);
+    return { ok: true, query: { kind: 'text' }, candidates: hits.map(r => ({ fields: r, in_catalog: { key: r.key, status: r.status, my_rating: r.my_rating } })) };
+  }
+  throw new Error('Неизвестное действие');
+}
+
+/* ---------- данные ---------- */
+let rows = store.get('rows', []);
+let syncedAt = store.get('syncedAt', '');
+const SHELVES = [
+  { id: 'pick', name: 'Что посмотреть' },
+  { id: 'want', name: 'Хочу' },
+  { id: 'watching', name: 'Смотрю' },
+  { id: 'watched', name: 'Посмотрел' },
+  { id: 'rewatch', name: 'Пересмотреть' },
+  { id: 'new', name: 'Вышло новое' },
+];
+const TIMES = [
+  { id: 'any', big: 'Весь вечер', small: 'без ограничений', max: Infinity },
+  { id: '95', big: '1,5 ч', small: 'до 95 мин', max: 95 },
+  { id: '125', big: '2 ч', small: 'до 125 мин', max: 125 },
+  { id: '155', big: '2,5 ч', small: 'до 155 мин', max: 155 },
+  { id: '50', big: 'Серия', small: 'до 50 мин', max: 50 },
+];
+const ui = Object.assign({ shelf: 'pick', time: 'any', type: 'all', genre: '', pick: '' }, store.get('ui', {}));
+let shown = 60;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const titleOf = r => r.title_ru || r.title || r.orig_title || r.key;
+const origOf = r => { const o = r.orig_title || r.title; return o && o !== titleOf(r) ? o : ''; };
+const rating = r => +(r.imdb_rating || r.kp_rating || 0);
+const isSeries = r => r.type === 'series' || r.type === 'mini';
+const genresOf = r => (r.genres_ru || r.genres || '').split(',').map(s => s.trim()).filter(Boolean);
+const STATUS = { want: 'Хочу', watching: 'Смотрю', watched: 'Посмотрел' };
+const TYPE = { film: 'Фильм', series: 'Сериал', mini: 'Мини-сериал' };
+
+function fmtRuntime(r) {
+  const m = +r.runtime_min; if (!m) return '';
+  const h = Math.floor(m / 60), mm = m % 60, t = (h ? h + ' ч ' : '') + (mm ? mm + ' мин' : '');
+  return isSeries(r) ? 'серия ' + t.trim() : t.trim();
+}
+function years(r) { return r.year ? (isSeries(r) && r.end_year && r.end_year !== r.year ? r.year + '–' + r.end_year : isSeries(r) && !r.end_year ? r.year + '–…' : r.year) : ''; }
+function posterUrl(r, w) {
+  const u = r.poster || '';
+  if (/m\.media-amazon\.com/.test(u)) return u.replace(/\._V1_.*?\.jpg$/, '._V1_QL75_UX' + (w || 300) + '_.jpg');
+  return u;
+}
+function posterHtml(r, w, mark) {
+  const u = posterUrl(r, w);
+  const ph = '<span class="ph">' + esc(titleOf(r)) + '</span>';
+  const img = u ? '<img loading="lazy" decoding="async" alt="" src="' + esc(u) + '" onerror="this.remove()">' : '';
+  return '<span class="poster">' + ph + img + (mark ? '<span class="mark">' + esc(mark) + '</span>' : '') + '</span>';
+}
+
+/* ---------- полки ---------- */
+const inRewatch = r => r.rewatch_manual === 'yes' || (r.rewatch_candidate === '1' && r.rewatch_manual !== 'no');
+function shelfRows(id) {
+  switch (id) {
+    case 'pick': case 'want': return rows.filter(r => r.status === 'want');
+    case 'watching': return rows.filter(r => r.status === 'watching');
+    case 'watched': return rows.filter(r => r.status === 'watched');
+    case 'rewatch': return rows.filter(inRewatch);
+    case 'new': return rows.filter(r => r.new_season && r.status !== 'want');
+  }
+  return [];
+}
+function pickPool() {
+  const t = TIMES.find(x => x.id === ui.time) || TIMES[0];
+  return shelfRows('pick').filter(r => {
+    if (ui.type === 'film' && isSeries(r)) return false;
+    if (ui.type === 'series' && !isSeries(r)) return false;
+    if (ui.genre && !genresOf(r).includes(ui.genre)) return false;
+    if (t.max !== Infinity) { const m = +r.runtime_min; if (!m || m > t.max) return false; }
+    return true;
+  });
+}
+function matchesQuery(r, q) { return !q || [r.title, r.title_ru, r.orig_title].some(t => (t || '').toLowerCase().includes(q)); }
+function sorted(id, list) {
+  const by = (f, dir = -1) => (a, b) => (f(a) > f(b) ? dir : f(a) < f(b) ? -dir : 0);
+  if (id === 'watched') return list.sort((a, b) => (b.rated_on || '').localeCompare(a.rated_on || '') || (+b.my_rating - +a.my_rating));
+  if (id === 'rewatch') return list.sort((a, b) => (+b.my_rating - +a.my_rating) || (a.rated_on || '').localeCompare(b.rated_on || ''));
+  if (id === 'new') return list.sort((a, b) => (a.new_season === 'likely' ? 0 : 1) - (b.new_season === 'likely' ? 0 : 1) || (a.last_seen || '').localeCompare(b.last_seen || ''));
+  return list.sort(by(rating));
+}
+const SORT_NOTE = { pick: 'по рейтингу', want: 'по рейтингу', watching: 'по рейтингу', watched: 'сначала недавние', rewatch: 'сначала любимые', new: 'сначала точно вышедшее' };
+
+/* ---------- отрисовка ---------- */
+function renderShelves() {
+  $('shelves').innerHTML = SHELVES.map(s => '<button class="shelf-btn" data-shelf="' + s.id + '" aria-pressed="' + (ui.shelf === s.id) + '">' +
+    esc(s.name) + '<span class="n">' + shelfRows(s.id).length + '</span></button>').join('');
+}
+function renderPicker() {
+  const sec = $('pickerSec');
+  sec.hidden = ui.shelf !== 'pick' || !!$('q').value.trim();
+  if (sec.hidden) return;
+  $('timeRow').innerHTML = TIMES.map(t => '<button class="time-btn" data-time="' + t.id + '" aria-pressed="' + (ui.time === t.id) + '"><strong>' + esc(t.big) + '</strong><span>' + esc(t.small) + '</span></button>').join('');
+  $('typeSeg').innerHTML = [['all', 'Всё'], ['film', 'Фильмы'], ['series', 'Сериалы']].map(([id, n]) => '<button data-type="' + id + '" aria-pressed="' + (ui.type === id) + '">' + n + '</button>').join('');
+  const counts = {};
+  shelfRows('pick').forEach(r => genresOf(r).forEach(g => { counts[g] = (counts[g] || 0) + 1; }));
+  const genres = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 30);
+  $('genreSel').innerHTML = '<option value="">Любой жанр</option>' + genres.map(g => '<option' + (g === ui.genre ? ' selected' : '') + '>' + esc(g) + '</option>').join('');
+  const pool = pickPool();
+  let pick = pool.find(r => r.key === ui.pick);
+  if (!pick && pool.length) { pick = randomPick(pool); ui.pick = pick.key; saveUi(); }
+  $('hero').innerHTML = pick ? heroHtml(pick, pool.length) :
+    '<div class="empty"><strong>Под такие условия в «Хочу» ничего нет</strong>Попробуй больше времени, другой жанр или «Всё».</div>';
+}
+function randomPick(pool, avoid) {
+  // чаще предлагаем то, что выше оценено: случайный выбор из верхней половины по рейтингу
+  const top = pool.slice().sort((a, b) => rating(b) - rating(a)).slice(0, Math.max(1, Math.ceil(pool.length / 2)));
+  const list = top.length > 1 ? top.filter(r => r.key !== avoid) : top;
+  return list[Math.floor(Math.random() * list.length)];
+}
+function heroHtml(r, n) {
+  const facts = [TYPE[r.type], years(r), fmtRuntime(r)].filter(Boolean).map(f => '<span>' + esc(f) + '</span>').join('');
+  const rt = [r.imdb_rating && 'IMDb ' + r.imdb_rating, r.kp_rating && 'КП ' + r.kp_rating].filter(Boolean).join('   ');
+  return '<div class="hero">' + '<button class="tile" data-open="' + esc(r.key) + '" aria-label="Открыть «' + esc(titleOf(r)) + '»">' + posterHtml(r, 440) + '</button>' +
+    '<div><h2>' + esc(titleOf(r)) + '</h2>' + (origOf(r) ? '<p class="orig">' + esc(origOf(r)) + '</p>' : '') +
+    '<div class="facts">' + facts + (rt ? '<span class="rating">' + esc(rt) + '</span>' : '') + '</div>' +
+    '<div class="facts"><span>' + esc(genresOf(r).slice(0, 4).join(', ')) + '</span></div>' +
+    '<div class="actions"><button class="btn primary" data-start="' + esc(r.key) + '">' + (isSeries(r) ? 'Начинаю смотреть' : 'Смотрю сегодня') + '</button>' +
+    '<button class="btn" id="otherBtn">Другой</button><button class="btn" data-open="' + esc(r.key) + '">Подробнее</button></div>' +
+    '<p class="hint">Выбрано из ' + n + ' подходящих в «Хочу».</p></div></div>';
+}
+function renderGrid() {
+  const q = $('q').value.trim().toLowerCase();
+  let list, title;
+  if (q) { list = rows.filter(r => matchesQuery(r, q)); title = 'Найдено в каталоге: ' + list.length; }
+  else if (ui.shelf === 'pick') { list = pickPool(); title = 'Всё подходящее: ' + list.length; }
+  else { list = shelfRows(ui.shelf); title = SHELVES.find(s => s.id === ui.shelf).name + ': ' + list.length; }
+  list = sorted(q ? 'want' : ui.shelf, list.slice());
+  $('gridTitle').textContent = title;
+  $('gridSort').textContent = q ? '' : SORT_NOTE[ui.shelf];
+  $('grid').innerHTML = list.length ? list.slice(0, shown).map(tileHtml).join('') :
+    (q ? '<div class="empty"><strong>В каталоге такого нет</strong><button class="btn primary" id="findNew">Найти на Кинопоиске</button></div>'
+       : '<div class="empty"><strong>Здесь пока пусто</strong>' + emptyHint() + '</div>');
+  $('moreBtn').hidden = list.length <= shown;
+}
+function emptyHint() {
+  if (!rows.length) return DEMO_URL ? 'Загружаю демо-каталог…' : 'Открой настройки и укажи адрес таблицы.';
+  return { watching: 'Отметь «Смотрю» в карточке фильма или сериала.', rewatch: 'Сюда попадает то, что ты оценил на 8+ больше трёх лет назад.', new: 'Сериалы, у которых вышли серии после твоего просмотра.' }[ui.shelf] || '';
+}
+function tileHtml(r) {
+  const mark = r.my_rating ? '★ ' + r.my_rating : (rating(r) ? rating(r).toFixed(1) : '');
+  const meta = [years(r), r.new_season === 'likely' ? 'вышло новое' : r.new_season === 'check' ? 'проверить' : ''].filter(Boolean).join(', ');
+  return '<button class="tile" data-open="' + esc(r.key) + '">' + posterHtml(r, 300, mark) + '<div class="t">' + esc(titleOf(r)) + '</div><div class="m">' + esc(meta) + '</div></button>';
+}
+function renderBanner() {
+  const b = [];
+  if (DEMO_URL) b.push('Демо: каталог из локального файла, изменения не сохраняются.');
+  else if (!settings.url) b.push('Каталог не подключён. <button data-settings>Открыть настройки</button>');
+  if (!navigator.onLine) b.push('Нет связи — показываю сохранённый каталог.');
+  $('banner').innerHTML = b.map(x => '<div class="banner">' + x + '</div>').join('');
+}
+function render() { renderBanner(); renderShelves(); renderPicker(); renderGrid(); }
+function saveUi() { store.set('ui', ui); }
+
+/* ---------- карточка ---------- */
+let cardKey = '';
+function openCard(key, msg) {
+  const r = rows.find(x => x.key === key); if (!r) return;
+  cardKey = key;
+  const facts = [TYPE[r.type], years(r), fmtRuntime(r)].filter(Boolean).map(f => '<span>' + esc(f) + '</span>').join('');
+  const rt = [r.imdb_rating && 'IMDb ' + r.imdb_rating, r.kp_rating && 'КП ' + r.kp_rating].filter(Boolean).join('   ');
+  const mine = r.my_rating_app || r.my_rating_imdb || r.my_rating_kp;
+  const src = r.my_rating_app ? 'в приложении' : r.my_rating_imdb ? 'на IMDb' : r.my_rating_kp ? 'на Кинопоиске' : '';
+  let seasons = '';
+  try { const sr = r.season_ratings ? JSON.parse(r.season_ratings) : null; if (sr) seasons = Object.keys(sr).map(k => '<span>Сезон ' + esc(k) + ': <b>' + esc(sr[k]) + '</b></span>').join(''); } catch (e) {}
+  const newNote = r.new_season === 'likely' ? 'После твоего последнего просмотра (' + esc(r.last_seen) + ') выходили новые серии.' :
+    r.new_season === 'check' ? 'Сериал идёт, последний раз ты смотрел ' + esc(r.last_seen) + '. Проверь, не вышел ли новый сезон.' : '';
+  const links = [r.kp_url && ['Кинопоиск', r.kp_url], r.imdb_url && ['IMDb', r.imdb_url], r.tmdb_url && ['TMDb', r.tmdb_url]].filter(Boolean)
+    .map(([n, u]) => '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + n + '</a>').join('');
+  $('cardBody').innerHTML =
+    '<div class="dlg-head"><span class="m" style="color:var(--muted)">' + esc(STATUS[r.status] || '') + '</span><button class="icon-btn" data-close aria-label="Закрыть">×</button></div>' +
+    '<div class="card-top">' + posterHtml(r, 300) + '<div><h2 id="cardTitle">' + esc(titleOf(r)) + '</h2>' + (origOf(r) ? '<p class="orig" style="color:var(--muted);margin:0 0 8px">' + esc(origOf(r)) + '</p>' : '') +
+    '<div class="facts">' + facts + '</div>' + (rt ? '<div class="facts"><span class="rating">' + esc(rt) + '</span></div>' : '') +
+    '<div class="facts"><span>' + esc(genresOf(r).join(', ')) + '</span></div></div></div>' +
+    (newNote ? '<p class="hint" style="color:var(--text)">' + newNote + '</p>' : '') +
+    '<div class="field"><span class="lbl">Статус</span><div class="seg" role="group" aria-label="Статус">' +
+      ['want', 'watching', 'watched'].map(s => '<button data-status="' + s + '" aria-pressed="' + (r.status === s) + '">' + STATUS[s] + '</button>').join('') + '</div></div>' +
+    '<div class="field"><span class="lbl">Моя оценка' + (src ? ': ' + esc(mine) + ' ' + src : '') + '</span><div class="stars" role="group" aria-label="Моя оценка">' +
+      Array.from({ length: 10 }, (_, i) => '<button data-rate="' + (i + 1) + '" aria-pressed="' + (String(i + 1) === String(r.my_rating_app || '')) + '">' + (i + 1) + '</button>').join('') + '</div>' +
+      (r.my_rating_app ? '<p class="hint"><button class="btn" data-rate="" style="padding:4px 10px">Убрать оценку приложения</button></p>' : '') + '</div>' +
+    (seasons ? '<div class="field"><span class="lbl">Оценки по сезонам (таблица 2019)</span><div class="seasons">' + seasons + '</div></div>' : '') +
+    (mine ? '<div class="field"><span class="lbl">Пересмотр</span><div class="seg" role="group" aria-label="Пересмотр">' +
+      [['', 'Авто'], ['yes', 'Предлагать'], ['no', 'Не предлагать']].map(([v, n]) => '<button data-rewatch="' + v + '" aria-pressed="' + ((r.rewatch_manual || '') === v) + '">' + n + '</button>').join('') +
+      '</div><p class="hint">Авто: предложу, если оценка 8+ и прошло больше трёх лет.</p></div>' : '') +
+    '<div class="field"><label class="lbl" for="noteIn">Заметка</label><textarea class="note" id="noteIn">' + esc(r.notes) + '</textarea>' +
+      '<button class="btn" id="noteSave" style="margin-top:6px">Сохранить заметку</button></div>' +
+    (links ? '<div class="field"><div class="links">' + links + '</div></div>' : '') +
+    '<div class="msg' + (msg ? ' ' + msg[0] : '') + '" id="cardMsg" role="status">' + (msg ? esc(msg[1]) : '') + '</div>';
+  if (!$('cardDlg').open) $('cardDlg').showModal();
+}
+async function updateRow(key, fields, okText) {
+  const msgEl = $('cardMsg');
+  if (msgEl) { msgEl.className = 'msg'; msgEl.textContent = 'Сохраняю…'; }
+  try {
+    const res = await api('update', { key, fields });
+    upsert(res.row);
+    render();
+    if ($('cardDlg').open && cardKey === key) openCard(key, ['ok', okText]);
+    toast(okText);
+  } catch (e) {
+    if ($('cardDlg').open && cardKey === key) openCard(key, ['err', e.message]); else toast(e.message);
+  }
+}
+function upsert(row) {
+  const i = rows.findIndex(r => r.key === row.key);
+  if (i >= 0) rows[i] = row; else rows.push(row);
+  store.set('rows', rows);
+}
+
+/* ---------- добавление ---------- */
+async function search(input) {
+  $('addMsg').className = 'msg'; $('addMsg').textContent = 'Ищу…'; $('cands').innerHTML = '';
+  try {
+    const res = await api('search', { input });
+    if (!res.candidates.length) { $('addMsg').textContent = 'Ничего не найдено. Попробуй другое написание или ссылку.'; return; }
+    $('addMsg').textContent = '';
+    $('cands').innerHTML = res.candidates.map(candHtml).join('');
+  } catch (e) { $('addMsg').className = 'msg err'; $('addMsg').textContent = e.message; }
+}
+function candHtml(c) {
+  const f = c.fields, meta = [TYPE[f.type], f.year, f.kp_rating && 'КП ' + f.kp_rating].filter(Boolean).join(', ');
+  const act = c.in_catalog
+    ? '<span class="m">Уже в каталоге: ' + esc(STATUS[c.in_catalog.status] || c.in_catalog.status) + '</span> <button class="btn" data-open="' + esc(c.in_catalog.key) + '">Открыть</button>'
+    : '<button class="btn primary" data-add="' + esc(f.kp_id) + '" data-st="want">В «Хочу»</button><button class="btn" data-add="' + esc(f.kp_id) + '" data-st="watching">Смотрю</button><button class="btn" data-seen="' + esc(f.kp_id) + '">Уже посмотрел</button>';
+  return '<li class="cand">' + posterHtml(f, 120) + '<div><h4>' + esc(f.title_ru || f.orig_title) + '</h4><div class="m">' + esc([f.orig_title !== f.title_ru ? f.orig_title : '', meta].filter(Boolean).join(', ')) + '</div>' +
+    '<div class="act" id="act-' + esc(f.kp_id) + '">' + act + '</div></div></li>';
+}
+async function addFilm(kp_id, status, my_rating_app) {
+  $('addMsg').className = 'msg'; $('addMsg').textContent = 'Добавляю…';
+  try {
+    const res = await api('add', { kp_id, status, my_rating_app });
+    upsert(res.row); render();
+    const text = (res.created ? 'Добавлено' : 'Обновлено') + ': ' + STATUS[res.row.status];
+    $('addMsg').className = 'msg ok'; $('addMsg').textContent = text + ' — «' + titleOf(res.row) + '»';
+    const box = $('act-' + kp_id); if (box) box.innerHTML = '<span class="m">' + esc(text) + '</span> <button class="btn" data-open="' + esc(res.row.key) + '">Открыть</button>';
+    toast(text);
+  } catch (e) { $('addMsg').className = 'msg err'; $('addMsg').textContent = e.message; }
+}
+function openAdd(prefill, auto) {
+  $('addInput').value = prefill || '';
+  $('addMsg').textContent = ''; $('cands').innerHTML = '';
+  if (!$('addDlg').open) $('addDlg').showModal();
+  if (auto && prefill) search(prefill); else $('addInput').focus();
+}
+
+/* ---------- синхронизация ---------- */
+async function sync(silent) {
+  try {
+    const res = await api('list');
+    rows = res.rows; syncedAt = new Date().toISOString();
+    store.set('rows', rows); store.set('syncedAt', syncedAt);
+    render();
+    if (!silent) toast('Каталог обновлён: ' + rows.length);
+    return true;
+  } catch (e) { if (!silent) toast(e.message); renderBanner(); return false; }
+}
+
+let toastTimer;
+function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2600); }
+
+/* ---------- события ---------- */
+document.addEventListener('click', e => {
+  const t = e.target.closest('button, [data-open]'); if (!t) return;
+  if (t.matches('[data-close]')) { t.closest('dialog').close(); return; }
+  if (t.dataset.shelf) { ui.shelf = t.dataset.shelf; shown = 60; $('q').value = ''; saveUi(); render(); window.scrollTo(0, 0); return; }
+  if (t.dataset.time) { ui.time = t.dataset.time; ui.pick = ''; saveUi(); render(); return; }
+  if (t.dataset.type) { ui.type = t.dataset.type; ui.pick = ''; saveUi(); render(); return; }
+  if (t.id === 'otherBtn') { const pool = pickPool(); if (pool.length) { ui.pick = randomPick(pool, ui.pick).key; saveUi(); renderPicker(); } return; }
+  if (t.dataset.open) { openCard(t.dataset.open); return; }
+  if (t.dataset.start) { updateRow(t.dataset.start, { status: 'watching' }, 'Отмечено: Смотрю'); return; }
+  if (t.id === 'moreBtn') { shown += 60; renderGrid(); return; }
+  if (t.id === 'findNew') { openAdd($('q').value.trim(), true); return; }
+  if (t.matches('[data-settings]') || t.id === 'setBtn') { openSettings(); return; }
+  if (t.id === 'addBtn') { openAdd(''); return; }
+  if (t.dataset.status) { const st = t.dataset.status; updateRow(cardKey, { status: st }, 'Отмечено: ' + STATUS[st]); return; }
+  if (t.dataset.rate !== undefined && t.closest('#cardBody')) { const v = t.dataset.rate; updateRow(cardKey, { my_rating_app: v }, v ? 'Оценка ' + v + ' сохранена' : 'Оценка приложения убрана'); return; }
+  if (t.dataset.rewatch !== undefined) { updateRow(cardKey, { rewatch_manual: t.dataset.rewatch }, 'Пересмотр: ' + t.textContent); return; }
+  if (t.id === 'noteSave') { updateRow(cardKey, { notes: $('noteIn').value }, 'Заметка сохранена'); return; }
+  if (t.dataset.add) { addFilm(t.dataset.add, t.dataset.st); return; }
+  if (t.dataset.seen) {
+    const box = $('act-' + t.dataset.seen);
+    box.innerHTML = '<span class="m">Оценка:</span><div class="stars" style="width:100%">' + Array.from({ length: 10 }, (_, i) => '<button data-seenrate="' + (i + 1) + '" data-kp="' + esc(t.dataset.seen) + '">' + (i + 1) + '</button>').join('') + '</div>';
+    return;
+  }
+  if (t.dataset.seenrate) { addFilm(t.dataset.kp, 'watched', t.dataset.seenrate); return; }
+  if (t.id === 'setSave') { saveSettings(); return; }
+  if (t.id === 'setSync') { sync(false).then(ok => { if (ok) $('setMsg').textContent = 'Каталог обновлён: ' + rows.length; }); return; }
+});
+$('genreSel').addEventListener('change', e => { ui.genre = e.target.value; ui.pick = ''; saveUi(); render(); });
+$('q').addEventListener('input', () => { shown = 60; render(); });
+$('addForm').addEventListener('submit', e => { e.preventDefault(); const v = $('addInput').value.trim(); if (v) search(v); });
+document.querySelectorAll('dialog').forEach(d => d.addEventListener('click', e => { if (e.target === d) d.close(); }));
+window.addEventListener('online', renderBanner);
+window.addEventListener('offline', renderBanner);
+
+function openSettings() {
+  $('setUrl').value = settings.url; $('setToken').value = settings.token; $('setMsg').textContent = '';
+  $('setInfo').textContent = syncedAt ? 'Каталог обновлён ' + new Date(syncedAt).toLocaleString('ru-RU') + ', записей: ' + rows.length : '';
+  $('setDlg').showModal();
+}
+async function saveSettings() {
+  settings.url = $('setUrl').value.trim(); settings.token = $('setToken').value.trim();
+  store.set('settings', settings);
+  $('setMsg').className = 'msg'; $('setMsg').textContent = 'Проверяю…';
+  try {
+    const p = await api('ping');
+    $('setMsg').className = 'msg ok'; $('setMsg').textContent = 'Подключено. Запросов к ПоискКино сегодня осталось: ' + p.left + '.';
+    await sync(true);
+    $('setInfo').textContent = 'Записей в каталоге: ' + rows.length;
+  } catch (e) { $('setMsg').className = 'msg err'; $('setMsg').textContent = e.message; }
+}
+
+/* ---------- старт ---------- */
+render();
+const shared = [params.get('title'), params.get('text'), params.get('url')].filter(Boolean).join(' ').trim();
+if (shared) { history.replaceState(null, '', location.pathname + (DEMO_URL ? '?demo=' + encodeURIComponent(DEMO_URL) : '')); openAdd(shared, true); }
+if (DEMO_URL || settings.url) sync(true);
+if ('serviceWorker' in navigator && !DEMO_URL && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
